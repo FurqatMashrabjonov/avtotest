@@ -6,6 +6,7 @@ import type { Question } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { AnswerOption } from "@/components/AnswerOption";
+import { BlurImage } from "@/components/BlurImage";
 import { useGame } from "@/store/useGame";
 import { shuffle } from "@/lib/utils";
 
@@ -135,9 +136,7 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
             </div>
 
             {q.image && (
-              <div className="mb-4 rounded-2xl overflow-hidden border-2 border-line bg-muted">
-                <img src={q.image} alt="" loading="lazy" className="w-full max-h-72 object-contain" />
-              </div>
+              <BlurImage key={q.image} src={q.image} className="mb-4 rounded-2xl border-2 border-line" />
             )}
 
             <div className="space-y-2.5">
