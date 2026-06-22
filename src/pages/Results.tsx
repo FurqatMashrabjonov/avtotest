@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
-import { Trophy, Heart, Target, RotateCcw } from "lucide-react";
+import { Trophy, CheckCircle2, Target, RotateCcw, CalendarClock } from "lucide-react";
 import type { QuizResult } from "@/components/QuizRunner";
 import { Button } from "@/components/ui/button";
+import { useReview } from "@/store/useReview";
+import { formatDate, dueLabel } from "@/lib/fsrs";
 
 function Stat({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
   return (
@@ -20,25 +22,23 @@ function Stat({ icon, label, value, color }: { icon: React.ReactNode; label: str
 export function ResultScreen({
   result,
   title,
+  reviewKey,
   onRetry,
   onHome,
   onReviewMistakes,
 }: {
   result: QuizResult;
   title: string;
+  reviewKey?: string;
   onRetry: () => void;
   onHome: () => void;
   onReviewMistakes?: () => void;
 }) {
   const win = result.passed;
   const accuracy = result.total ? Math.round((result.correct / result.total) * 100) : 0;
+  const card = useReview((s) => (reviewKey ? s.cards[reviewKey] : undefined));
 
-  const headline =
-    result.reason === "out-of-hearts"
-      ? "Yuraklar tugadi 💔"
-      : win
-      ? "Ajoyib!"
-      : "Yakunlandi";
+  const headline = win ? "Ajoyib!" : "Yakunlandi";
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center max-w-xl mx-auto px-6 text-center">
@@ -55,10 +55,21 @@ export function ResultScreen({
 
       <div className="flex gap-3 w-full mt-8">
         <Stat icon={<Target className="h-5 w-5 text-sky" />} label="Aniqlik" value={`${accuracy}%`} color="border-sky" />
-        <Stat icon={<Heart className="h-5 w-5 text-cardinal fill-cardinal" />} label="To'g'ri" value={`${result.correct}/${result.total}`} color="border-cardinal" />
+        <Stat icon={<CheckCircle2 className="h-5 w-5 text-grass" />} label="To'g'ri" value={`${result.correct}/${result.total}`} color="border-grass" />
       </div>
 
-      <div className="w-full mt-10 space-y-3">
+      {card && (
+        <div className="mt-5 w-full rounded-2xl border-2 border-fox bg-fox/10 px-4 py-3 flex items-center gap-3 text-left">
+          <CalendarClock className="h-7 w-7 text-fox shrink-0" />
+          <div>
+            <div className="text-xs font-bold uppercase tracking-wide text-fox">Keyingi takrorlash</div>
+            <div className="font-extrabold">{formatDate(card)}</div>
+            <div className="text-xs font-semibold text-wolf">{dueLabel(card)}</div>
+          </div>
+        </div>
+      )}
+
+      <div className="w-full mt-8 space-y-3">
         {onReviewMistakes && (
           <Button variant="sky" size="lg" className="w-full" onClick={onReviewMistakes}>
             Xatolar ustida ishlash ({result.wrongIds.length})

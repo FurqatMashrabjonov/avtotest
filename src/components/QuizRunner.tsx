@@ -6,15 +6,13 @@ import type { Question } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { AnswerOption } from "@/components/AnswerOption";
-import { HeartsBar } from "@/components/HeartsBar";
 import { useGame } from "@/store/useGame";
 import { shuffle, cn } from "@/lib/utils";
 
 export interface QuizConfig {
   title: string;
   questions: Question[];
-  useHearts?: boolean; // consume global hearts on wrong; game-over at 0 (practice modes)
-  passMaxWrong?: number; // tests: pass if wrong <= this (no early fail, finish all)
+  passMaxWrong?: number; // pass if wrong <= this (default: always pass on completion)
 }
 
 export interface QuizResult {
@@ -22,7 +20,7 @@ export interface QuizResult {
   correct: number;
   wrong: number;
   passed: boolean;
-  reason: "completed" | "out-of-hearts";
+  reason: "completed";
   wrongIds: number[];
 }
 
@@ -38,9 +36,9 @@ function useShuffledAnswers(questions: Question[]) {
 }
 
 export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r: QuizResult) => void }) {
-  const { questions, useHearts, passMaxWrong } = config;
+  const { questions, passMaxWrong } = config;
   const nav = useNavigate();
-  const game = useGame();
+  const recordAnswer = useGame((s) => s.recordAnswer);
   const shuffledAnswers = useShuffledAnswers(questions);
 
   const [idx, setIdx] = useState(0);
@@ -59,32 +57,31 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
     if (picked == null) return;
     const ok = answers[picked].correct;
     setChecked(true);
-    game.recordAnswer(q.id, ok);
+    recordAnswer(q.id, ok);
     if (ok) {
       setCorrectCount((c) => c + 1);
     } else {
       setWrongCount((w) => w + 1);
       setWrongIds((ids) => [...ids, q.id]);
-      if (useHearts) game.loseHeart();
     }
   }
 
   function next() {
-    const ok = picked != null && answers[picked].correct;
-    if (useHearts && !ok && game.currentHearts() <= 0) {
-      return finish("out-of-hearts");
-    }
     if (idx + 1 >= questions.length) {
-      return finish("completed");
+      const passed = wrongCount <= (passMaxWrong ?? Infinity);
+      onDone({
+        total: questions.length,
+        correct: correctCount,
+        wrong: wrongCount,
+        passed,
+        reason: "completed",
+        wrongIds,
+      });
+      return;
     }
     setIdx((i) => i + 1);
     setPicked(null);
     setChecked(false);
-  }
-
-  function finish(reason: QuizResult["reason"]) {
-    const passed = reason === "completed" && wrongCount <= (passMaxWrong ?? Infinity);
-    onDone({ total: questions.length, correct: correctCount, wrong: wrongCount, passed, reason, wrongIds });
   }
 
   function speak() {
@@ -103,13 +100,9 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
           <X className="h-7 w-7" />
         </button>
         <Progress value={progress} className="flex-1" />
-        {useHearts ? (
-          <HeartsBar hearts={game.currentHearts()} />
-        ) : (
-          <span className="text-sm font-extrabold text-wolf tabular-nums">
-            {idx + 1}/{questions.length}
-          </span>
-        )}
+        <span className="text-sm font-extrabold text-wolf tabular-nums">
+          {idx + 1}/{questions.length}
+        </span>
       </header>
 
       {/* question body */}

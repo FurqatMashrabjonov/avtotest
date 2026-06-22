@@ -10,12 +10,15 @@ import {
   TEST_PASS_MAX_WRONG,
 } from "@/lib/data";
 import { useGame } from "@/store/useGame";
+import { useReview, testKey, catKey } from "@/store/useReview";
+import { ratingFromResult } from "@/lib/fsrs";
 import { shuffle } from "@/lib/utils";
 
 export default function Quiz() {
   const { mode, id } = useParams();
   const nav = useNavigate();
   const mistakeIds = useGame((s) => s.mistakeIds);
+  const review = useReview((s) => s.review);
   const [result, setResult] = useState<QuizResult | null>(null);
 
   const config = useMemo<QuizConfig | null>(() => {
@@ -23,7 +26,7 @@ export default function Quiz() {
       const cat = categoryById.get(Number(id));
       const qs = shuffle(questionsByCategory(Number(id)));
       if (!qs.length) return null;
-      return { title: cat?.name ?? "Mavzu", questions: qs, useHearts: true };
+      return { title: cat?.name ?? "Mavzu", questions: qs, passMaxWrong: TEST_PASS_MAX_WRONG };
     }
     if (mode === "test" && id) {
       const block = getBlock(Number(id));
@@ -34,11 +37,18 @@ export default function Quiz() {
     if (mode === "mistakes") {
       const qs = mistakeIds.map(getQuestion).filter(Boolean) as ReturnType<typeof getQuestion>[];
       if (!qs.length) return null;
-      return { title: "Xatolar ustida ish", questions: shuffle(qs as any), useHearts: true };
+      return { title: "Xatolar ustida ish", questions: shuffle(qs as any) };
     }
     return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, id]);
+
+  // schedule next review (FSRS) on completion of a test/topic
+  function handleDone(r: QuizResult) {
+    if (mode === "test" && id) review(testKey(id), ratingFromResult(r));
+    else if (mode === "category" && id) review(catKey(id), ratingFromResult(r));
+    setResult(r);
+  }
 
   if (!config) {
     return (
@@ -54,10 +64,13 @@ export default function Quiz() {
   }
 
   if (result) {
+    const reviewKey =
+      mode === "test" && id ? testKey(id) : mode === "category" && id ? catKey(id) : undefined;
     return (
       <ResultScreen
         result={result}
         title={config.title}
+        reviewKey={reviewKey}
         onRetry={() => {
           setResult(null);
           nav(0); // reload to reshuffle
@@ -68,5 +81,5 @@ export default function Quiz() {
     );
   }
 
-  return <QuizRunner config={config} onDone={setResult} />;
+  return <QuizRunner config={config} onDone={handleDone} />;
 }
