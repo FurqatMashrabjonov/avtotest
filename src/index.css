@@ -1,9 +1,11 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
 
-  /* Duolingo-ish palette */
+  /* Duolingo-ish brand palette (same in light/dark) */
   --color-grass: #58cc02;
   --color-grass-dark: #58a700;
   --color-leaf: #89e219;
@@ -13,10 +15,25 @@
   --color-cardinal: #ff4b4b;
   --color-cardinal-dark: #ea2b2b;
   --color-fox: #ff9600;
-  --color-wolf: #777777;
-  --color-swan: #e5e5e5;
-  --color-polar: #f7f7f7;
-  --color-eel: #4b4b4b;
+
+  /* semantic surface tokens (overridden in .dark) */
+  --color-bg: #ffffff;
+  --color-card: #ffffff;
+  --color-muted: #f7f7f7;
+  --color-line: #e5e5e5;
+  --color-fg: #3c3c3c;
+  --color-faint: #777777;
+}
+
+.dark {
+  --color-bg: #131f24;
+  --color-card: #1c2b33;
+  --color-muted: #1c2b33;
+  --color-line: #37464f;
+  --color-fg: #f1f7fb;
+  --color-faint: #93a4ad;
+  --color-grass-dark: #4caf00;
+  color-scheme: dark;
 }
 
 :root {
@@ -36,8 +53,8 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: #fff;
-  color: var(--color-eel);
+  background: var(--color-bg);
+  color: var(--color-fg);
   overscroll-behavior: none;
 }
 

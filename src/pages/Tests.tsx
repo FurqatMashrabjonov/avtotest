@@ -16,7 +16,7 @@ export default function Tests() {
   return (
     <div className="pb-6">
       <h1 className="pt-5 text-2xl font-extrabold">Testlar</h1>
-      <p className="text-wolf font-semibold">61 ta test, har birida 20 savol.</p>
+      <p className="text-faint font-semibold">61 ta test, har birida 20 savol.</p>
 
       {!!mistakeIds.length && (
         <button
@@ -45,8 +45,8 @@ export default function Tests() {
               key={n}
               onClick={() => nav(`/quiz/test/${n}`)}
               className={cn(
-                "btn-3d rounded-2xl border-2 bg-white p-3 flex items-center gap-3 text-left hover:bg-polar",
-                due ? "border-fox" : "border-swan"
+                "btn-3d rounded-2xl border-2 bg-card p-3 flex items-center gap-3 text-left hover:bg-muted",
+                due ? "border-fox" : "border-line"
               )}
             >
               <div
@@ -59,10 +59,10 @@ export default function Tests() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-bold leading-tight">{n}-test</div>
-                <div className="mt-1 h-2 w-full rounded-full bg-swan overflow-hidden">
+                <div className="mt-1 h-2 w-full rounded-full bg-line overflow-hidden">
                   <div className="h-full rounded-full bg-grass transition-all" style={{ width: `${pct}%` }} />
                 </div>
-                <div className={cn("text-[11px] font-bold mt-0.5 flex items-center gap-1", due ? "text-fox" : "text-wolf")}>
+                <div className={cn("text-[11px] font-bold mt-0.5 flex items-center gap-1", due ? "text-fox" : "text-faint")}>
                   {due && <CalendarClock className="h-3 w-3" />}
                   {card ? dueLabel(card) : `${done}/${block.length}`}
                 </div>

@@ -10,8 +10,8 @@ const buttonVariants = cva(
         primary: "bg-grass border-grass-dark text-white hover:brightness-105",
         sky: "bg-sky border-sky-dark text-white hover:brightness-105",
         danger: "bg-cardinal border-cardinal-dark text-white hover:brightness-105",
-        ghost: "bg-white border-swan text-eel hover:bg-polar",
-        locked: "bg-swan border-[#cfcfcf] text-wolf",
+        ghost: "bg-card border-line text-fg hover:bg-muted",
+        locked: "bg-line border-[#cfcfcf] text-faint",
       },
       size: {
         default: "h-12 px-5 text-sm",

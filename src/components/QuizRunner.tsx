@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Volume2 } from "lucide-react";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { AnswerOption } from "@/components/AnswerOption";
 import { useGame } from "@/store/useGame";
-import { shuffle, cn } from "@/lib/utils";
+import { shuffle } from "@/lib/utils";
 
 export interface QuizConfig {
   title: string;
@@ -24,7 +24,8 @@ export interface QuizResult {
   wrongIds: number[];
 }
 
-// answers shuffled once per question
+const CORRECT_DELAY = 650; // ms before auto-advance on correct answer
+
 function useShuffledAnswers(questions: Question[]) {
   return useMemo(
     () =>
@@ -44,38 +45,49 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [wrongCount, setWrongCount] = useState(0);
-  const [wrongIds, setWrongIds] = useState<number[]>([]);
+
+  // counts via refs (avoid stale closures in auto-advance timer)
+  const correctRef = useRef(0);
+  const wrongRef = useRef(0);
+  const wrongIdsRef = useRef<number[]>([]);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
 
   const q = questions[idx];
   const answers = shuffledAnswers[idx];
   const isCorrect = checked && picked != null && answers[picked].correct;
   const progress = (idx / questions.length) * 100;
 
-  function check() {
-    if (picked == null) return;
-    const ok = answers[picked].correct;
+  function pickAnswer(i: number) {
+    if (checked) return;
+    const ok = answers[i].correct;
+    setPicked(i);
     setChecked(true);
     recordAnswer(q.id, ok);
     if (ok) {
-      setCorrectCount((c) => c + 1);
+      correctRef.current += 1;
+      timer.current = setTimeout(goNext, CORRECT_DELAY);
     } else {
-      setWrongCount((w) => w + 1);
-      setWrongIds((ids) => [...ids, q.id]);
+      wrongRef.current += 1;
+      wrongIdsRef.current.push(q.id);
     }
   }
 
-  function next() {
+  function goNext() {
+    if (timer.current) clearTimeout(timer.current);
     if (idx + 1 >= questions.length) {
-      const passed = wrongCount <= (passMaxWrong ?? Infinity);
       onDone({
         total: questions.length,
-        correct: correctCount,
-        wrong: wrongCount,
-        passed,
+        correct: correctRef.current,
+        wrong: wrongRef.current,
+        passed: wrongRef.current <= (passMaxWrong ?? Infinity),
         reason: "completed",
-        wrongIds,
+        wrongIds: wrongIdsRef.current,
       });
       return;
     }
@@ -96,11 +108,11 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
     <div className="flex flex-col min-h-dvh max-w-xl mx-auto px-4">
       {/* top bar */}
       <header className="flex items-center gap-3 py-4">
-        <button onClick={() => nav("/")} className="text-wolf hover:text-eel">
+        <button onClick={() => nav("/")} className="text-faint hover:text-fg">
           <X className="h-7 w-7" />
         </button>
         <Progress value={progress} className="flex-1" />
-        <span className="text-sm font-extrabold text-wolf tabular-nums">
+        <span className="text-sm font-extrabold text-faint tabular-nums">
           {idx + 1}/{questions.length}
         </span>
       </header>
@@ -123,7 +135,7 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
             </div>
 
             {q.image && (
-              <div className="mb-4 rounded-2xl overflow-hidden border-2 border-swan bg-polar">
+              <div className="mb-4 rounded-2xl overflow-hidden border-2 border-line bg-muted">
                 <img src={q.image} alt="" loading="lazy" className="w-full max-h-72 object-contain" />
               </div>
             )}
@@ -131,7 +143,7 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
             <div className="space-y-2.5">
               {answers.map((a, i) => {
                 let state: "idle" | "selected" | "correct" | "wrong" | "missed" = "idle";
-                if (!checked) state = picked === i ? "selected" : "idle";
+                if (!checked) state = "idle";
                 else if (a.correct) state = picked === i ? "correct" : "missed";
                 else if (picked === i) state = "wrong";
                 return (
@@ -141,7 +153,7 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
                     text={a.text}
                     state={state}
                     disabled={checked}
-                    onClick={() => !checked && setPicked(i)}
+                    onClick={() => pickAnswer(i)}
                   />
                 );
               })}
@@ -150,30 +162,14 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
         </AnimatePresence>
       </div>
 
-      {/* footer */}
-      <footer
-        className={cn(
-          "sticky bottom-0 -mx-4 px-4 py-4 border-t-2 transition-colors",
-          !checked && "border-transparent",
-          isCorrect && "border-grass/30 bg-grass/10",
-          checked && !isCorrect && "border-cardinal/30 bg-cardinal/10"
-        )}
-      >
-        {checked && (
-          <div className={cn("mb-3 font-extrabold", isCorrect ? "text-grass-dark" : "text-cardinal-dark")}>
-            {isCorrect ? "To'g'ri! 🎉" : "Noto'g'ri"}
-          </div>
-        )}
-        {!checked ? (
-          <Button variant="primary" size="lg" className="w-full" disabled={picked == null} onClick={check}>
-            Tekshirish
-          </Button>
-        ) : (
-          <Button variant={isCorrect ? "primary" : "danger"} size="lg" className="w-full" onClick={next}>
+      {/* footer: only on wrong answer */}
+      {checked && !isCorrect && (
+        <footer className="sticky bottom-0 -mx-4 px-4 py-4 border-t-2 border-cardinal/30 bg-cardinal/10">
+          <Button variant="danger" size="lg" className="w-full" onClick={goNext}>
             Davom etish
           </Button>
-        )}
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }

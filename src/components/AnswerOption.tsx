@@ -23,7 +23,7 @@ export function AnswerOption({
       disabled={disabled}
       className={cn(
         "btn-3d w-full rounded-2xl border-2 px-4 py-3.5 text-left flex items-center gap-3 font-semibold",
-        state === "idle" && "border-swan bg-white hover:bg-polar text-eel",
+        state === "idle" && "border-line bg-card hover:bg-muted text-fg",
         state === "selected" && "border-sky bg-sky/10 text-sky-dark",
         state === "correct" && "border-grass bg-grass/10 text-grass-dark",
         state === "wrong" && "border-cardinal bg-cardinal/10 text-cardinal-dark",
@@ -34,7 +34,7 @@ export function AnswerOption({
       <span
         className={cn(
           "grid h-7 w-7 shrink-0 place-items-center rounded-lg border-2 text-xs font-bold",
-          state === "idle" && "border-swan text-wolf",
+          state === "idle" && "border-line text-faint",
           state === "selected" && "border-sky text-sky-dark",
           (state === "correct" || state === "missed") && "border-grass bg-grass text-white",
           state === "wrong" && "border-cardinal bg-cardinal text-white"

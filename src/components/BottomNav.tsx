@@ -10,7 +10,7 @@ const items = [
 
 export function BottomNav({ dueCount = 0 }: { dueCount?: number }) {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-20 border-t-2 border-swan bg-white">
+    <nav className="fixed bottom-0 inset-x-0 z-20 border-t-2 border-line bg-card">
       <div className="max-w-xl mx-auto grid grid-cols-3">
         {items.map(({ to, label, icon: Icon, end }) => (
           <NavLink
@@ -20,7 +20,7 @@ export function BottomNav({ dueCount = 0 }: { dueCount?: number }) {
             className={({ isActive }) =>
               cn(
                 "relative flex flex-col items-center gap-0.5 py-2.5 font-extrabold text-xs",
-                isActive ? "text-grass-dark" : "text-wolf"
+                isActive ? "text-grass-dark" : "text-faint"
               )
             }
           >

@@ -11,7 +11,7 @@ function Stat({ icon, label, value, color }: { icon: React.ReactNode; label: str
       <div className="text-[11px] font-bold uppercase tracking-wide text-white py-1 text-center bg-black/10">
         {label}
       </div>
-      <div className="flex items-center justify-center gap-1.5 py-2.5 bg-white">
+      <div className="flex items-center justify-center gap-1.5 py-2.5 bg-card">
         {icon}
         <span className="text-lg font-extrabold">{value}</span>
       </div>
@@ -47,11 +47,11 @@ export function ResultScreen({
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 12 }}
       >
-        <Trophy className={`h-24 w-24 ${win ? "text-bee fill-bee" : "text-wolf"}`} />
+        <Trophy className={`h-24 w-24 ${win ? "text-bee fill-bee" : "text-faint"}`} />
       </motion.div>
 
       <h1 className="mt-4 text-3xl font-extrabold">{headline}</h1>
-      <p className="text-wolf font-semibold mt-1">{title}</p>
+      <p className="text-faint font-semibold mt-1">{title}</p>
 
       <div className="flex gap-3 w-full mt-8">
         <Stat icon={<Target className="h-5 w-5 text-sky" />} label="Aniqlik" value={`${accuracy}%`} color="border-sky" />
@@ -64,7 +64,7 @@ export function ResultScreen({
           <div>
             <div className="text-xs font-bold uppercase tracking-wide text-fox">Keyingi takrorlash</div>
             <div className="font-extrabold">{formatDate(card)}</div>
-            <div className="text-xs font-semibold text-wolf">{dueLabel(card)}</div>
+            <div className="text-xs font-semibold text-faint">{dueLabel(card)}</div>
           </div>
         </div>
       )}

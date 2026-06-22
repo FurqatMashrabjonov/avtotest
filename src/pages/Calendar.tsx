@@ -53,9 +53,9 @@ export default function Calendar() {
   if (!items.length) {
     return (
       <div className="pt-20 text-center px-6">
-        <CalendarClock className="h-16 w-16 mx-auto text-swan" />
+        <CalendarClock className="h-16 w-16 mx-auto text-line" />
         <h1 className="mt-4 text-xl font-extrabold">Kalendar bo'sh</h1>
-        <p className="text-wolf font-semibold mt-1">
+        <p className="text-faint font-semibold mt-1">
           Test yoki mavzu topshiring — FSRS keyingi takrorlash sanasini belgilaydi.
         </p>
       </div>
@@ -76,7 +76,7 @@ export default function Calendar() {
   return (
     <div className="pb-6">
       <h1 className="pt-5 text-2xl font-extrabold">Kalendar</h1>
-      <p className="text-wolf font-semibold">Qaysi testni qachon takrorlash kerak.</p>
+      <p className="text-faint font-semibold">Qaysi testni qachon takrorlash kerak.</p>
 
       {overdueCount > 0 && (
         <div className="mt-4 rounded-2xl border-2 border-fox bg-fox/10 px-4 py-3 flex items-center gap-2 font-extrabold text-fox">
@@ -90,7 +90,7 @@ export default function Calendar() {
           const isToday = day === today;
           return (
             <div key={day}>
-              <div className={cn("text-sm font-extrabold uppercase tracking-wide mb-2", isToday ? "text-fox" : "text-wolf")}>
+              <div className={cn("text-sm font-extrabold uppercase tracking-wide mb-2", isToday ? "text-fox" : "text-faint")}>
                 {dayLabel(day, today)}
               </div>
               <div className="grid gap-2">
@@ -99,8 +99,8 @@ export default function Calendar() {
                     key={it.key}
                     onClick={() => nav(it.route)}
                     className={cn(
-                      "btn-3d rounded-2xl border-2 bg-white p-3 flex items-center gap-3 text-left hover:bg-polar",
-                      isToday ? "border-fox" : "border-swan"
+                      "btn-3d rounded-2xl border-2 bg-card p-3 flex items-center gap-3 text-left hover:bg-muted",
+                      isToday ? "border-fox" : "border-line"
                     )}
                   >
                     <div
@@ -113,7 +113,7 @@ export default function Calendar() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold leading-tight line-clamp-2">{it.title}</div>
-                      <div className="text-[11px] font-semibold text-wolf">
+                      <div className="text-[11px] font-semibold text-faint">
                         {it.isTest ? "Test" : "Mavzu"} · {Math.round(it.card.stability)} kun barqarorlik
                       </div>
                     </div>

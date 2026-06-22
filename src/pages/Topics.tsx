@@ -15,7 +15,7 @@ export default function Topics() {
   return (
     <div className="pb-6">
       <h1 className="pt-5 text-2xl font-extrabold">Mavzular</h1>
-      <p className="text-wolf font-semibold">{categories.length} ta mavzu bo'yicha mashq.</p>
+      <p className="text-faint font-semibold">{categories.length} ta mavzu bo'yicha mashq.</p>
 
       <div className="mt-4 grid gap-2.5">
         {categories.map((c) => {
@@ -31,8 +31,8 @@ export default function Topics() {
               key={c.id}
               onClick={() => nav(`/quiz/category/${c.id}`)}
               className={cn(
-                "btn-3d rounded-2xl border-2 bg-white p-3.5 flex items-center gap-3 text-left hover:bg-polar",
-                due ? "border-fox" : "border-swan"
+                "btn-3d rounded-2xl border-2 bg-card p-3.5 flex items-center gap-3 text-left hover:bg-muted",
+                due ? "border-fox" : "border-line"
               )}
             >
               <div
@@ -45,7 +45,7 @@ export default function Topics() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-bold leading-tight line-clamp-2">{c.name}</div>
-                <div className="mt-1 h-2 w-full rounded-full bg-swan overflow-hidden">
+                <div className="mt-1 h-2 w-full rounded-full bg-line overflow-hidden">
                   <div className="h-full rounded-full bg-grass transition-all" style={{ width: `${pct}%` }} />
                 </div>
               </div>
@@ -54,7 +54,7 @@ export default function Topics() {
                   <CalendarClock className="h-3.5 w-3.5" /> Takror
                 </span>
               ) : (
-                <span className="text-xs font-bold text-wolf shrink-0">{done}/{qs.length}</span>
+                <span className="text-xs font-bold text-faint shrink-0">{done}/{qs.length}</span>
               )}
             </button>
           );

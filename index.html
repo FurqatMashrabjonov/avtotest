@@ -11,6 +11,14 @@
       rel="stylesheet"
     />
     <title>AvtoTest — Haydovchilik guvohnomasi testlari</title>
+    <script>
+      // apply theme before paint (no flash)
+      try {
+        var t = localStorage.getItem("avtotest-theme");
+        if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches))
+          document.documentElement.classList.add("dark");
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
