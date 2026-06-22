@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+
+  /* Duolingo-ish palette */
+  --color-grass: #58cc02;
+  --color-grass-dark: #58a700;
+  --color-leaf: #89e219;
+  --color-sky: #1cb0f6;
+  --color-sky-dark: #1899d6;
+  --color-bee: #ffc800;
+  --color-cardinal: #ff4b4b;
+  --color-cardinal-dark: #ea2b2b;
+  --color-fox: #ff9600;
+  --color-wolf: #777777;
+  --color-swan: #e5e5e5;
+  --color-polar: #f7f7f7;
+  --color-eel: #4b4b4b;
+}
+
+:root {
+  --radius: 1rem;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: #fff;
+  color: var(--color-eel);
+  overscroll-behavior: none;
+}
+
+/* chunky "3D" button press */
+.btn-3d {
+  border-bottom-width: 4px;
+  transition: filter 0.1s, transform 0.05s;
+}
+.btn-3d:active:not(:disabled) {
+  border-bottom-width: 0;
+  transform: translateY(4px);
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.animate-pop { animation: pop 0.3s ease; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+.animate-shake { animation: shake 0.4s ease; }

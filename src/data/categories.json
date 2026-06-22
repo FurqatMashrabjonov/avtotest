@@ -1,0 +1,289 @@
+[
+  {
+    "id": 38,
+    "name": "Umumiy qoidalar (atamalar)",
+    "description": "Umumiy qoidalar va atamalar",
+    "order": 1,
+    "count": 132
+  },
+  {
+    "id": 85,
+    "name": "Haydovchilarning umumiy vazifalari",
+    "description": "Haydovchilarning umumiy vazifalari",
+    "order": 2,
+    "count": 51
+  },
+  {
+    "id": 86,
+    "name": "Yo‘l-transport hodisasi sodir bo‘lganda haydovchining majburiyatlari",
+    "description": "YTH da haydovchi majburiyatlari",
+    "order": 3,
+    "count": 5
+  },
+  {
+    "id": 87,
+    "name": "Piyodalarning majburiyatlari",
+    "description": "Piyodalarning majburiyatlari",
+    "order": 4,
+    "count": 14
+  },
+  {
+    "id": 88,
+    "name": "Yo‘lovchilarning majburiyatlari",
+    "description": "Yo‘lovchilarning majburiyatlari",
+    "order": 5,
+    "count": 3
+  },
+  {
+    "id": 89,
+    "name": "Ogohlantiruvchi belgilar",
+    "description": "Ogohlantiruvchi yo‘l belgilari",
+    "order": 6,
+    "count": 41
+  },
+  {
+    "id": 90,
+    "name": "Imtiyoz belgilari",
+    "description": "Imtiyoz yo‘l belgilari",
+    "order": 7,
+    "count": 19
+  },
+  {
+    "id": 91,
+    "name": "Taqiqlovchi belgilar",
+    "description": "Taqiqlovchi yo‘l belgilari",
+    "order": 8,
+    "count": 57
+  },
+  {
+    "id": 92,
+    "name": "Buyuruvchi belgilar",
+    "description": "Buyuruvchi yo‘l belgilari",
+    "order": 9,
+    "count": 27
+  },
+  {
+    "id": 93,
+    "name": "Axborot-ko‘rsatgich belgilari",
+    "description": "Axborot-ko‘rsatgich yo‘l belgilari",
+    "order": 10,
+    "count": 53
+  },
+  {
+    "id": 94,
+    "name": "Servis belgilari",
+    "description": "Servis yo‘l belgilari",
+    "order": 11,
+    "count": 1
+  },
+  {
+    "id": 95,
+    "name": "Qo‘shimcha axborot belgilari",
+    "description": "Qo‘shimcha axborot yo‘l belgilari",
+    "order": 12,
+    "count": 27
+  },
+  {
+    "id": 96,
+    "name": "Birinchi tibbiy yordam",
+    "description": "Birinchi tibbiy yordam ko‘rsatish",
+    "order": 13,
+    "count": 38
+  },
+  {
+    "id": 97,
+    "name": "Maxsus transport vositalarining imtiyozlari",
+    "description": "Maxsus transport imtiyozlari",
+    "order": 14,
+    "count": 11
+  },
+  {
+    "id": 98,
+    "name": "Ogohlantiruvchi va avariya ishoralari",
+    "description": "Ogohlantiruvchi va avariya ishoralari",
+    "order": 15,
+    "count": 17
+  },
+  {
+    "id": 99,
+    "name": "Svetoforning ishoralari",
+    "description": "Svetofor ishoralari",
+    "order": 16,
+    "count": 45
+  },
+  {
+    "id": 100,
+    "name": "Tartibga soluvchining ishoralari",
+    "description": "Tartibga soluvchi ishoralari",
+    "order": 17,
+    "count": 32
+  },
+  {
+    "id": 101,
+    "name": "Harakatlanishni boshlash, manevr qilish",
+    "description": "Harakatlanishni boshlash va manevr",
+    "order": 18,
+    "count": 64
+  },
+  {
+    "id": 102,
+    "name": "Yo‘lning qatnov qismida transport vositalarining joylashuvi",
+    "description": "Transport vositalarining joylashuvi",
+    "order": 19,
+    "count": 22
+  },
+  {
+    "id": 103,
+    "name": "Harakatlanish tezligi",
+    "description": "Harakatlanish tezligi",
+    "order": 20,
+    "count": 34
+  },
+  {
+    "id": 104,
+    "name": "Quvib o‘tish",
+    "description": "Quvib o‘tish qoidalari",
+    "order": 21,
+    "count": 30
+  },
+  {
+    "id": 105,
+    "name": "To‘xtash va to‘xtab turish",
+    "description": "To‘xtash va to‘xtab turish",
+    "order": 22,
+    "count": 56
+  },
+  {
+    "id": 106,
+    "name": "Chorrahalarda harakatlanish",
+    "description": "Chorrahalarda harakatlanish",
+    "order": 23,
+    "count": 3
+  },
+  {
+    "id": 107,
+    "name": "Tartibga solingan chorrahalar",
+    "description": "Tartibga solingan chorrahalar",
+    "order": 24,
+    "count": 1
+  },
+  {
+    "id": 108,
+    "name": "Tartibga solinmagan chorrahalar (teng ahamiyatga ega bo‘lgan, o'ng qo'l qoidasi",
+    "description": "Teng ahamiyatli chorrahalar",
+    "order": 25,
+    "count": 47
+  },
+  {
+    "id": 109,
+    "name": "Tartibga solinmagan chorrahalar (teng ahamiyatga ega bo‘lmagan, imtiyoz belgilari)",
+    "description": "Teng ahamiyatsiz chorrahalar",
+    "order": 26,
+    "count": 45
+  },
+  {
+    "id": 110,
+    "name": "Piyodalarning o‘tish joylari va yo‘nalishli transport bekatlari",
+    "description": "Piyoda o‘tish joylari va bekatlar",
+    "order": 27,
+    "count": 8
+  },
+  {
+    "id": 111,
+    "name": "Temir yo‘l kesishmalari orqali harakatlanish",
+    "description": "Temir yo‘l kesishmalari",
+    "order": 28,
+    "count": 21
+  },
+  {
+    "id": 112,
+    "name": "Avtomagistrallarda harakatlanish",
+    "description": "Avtomagistrallarda harakatlanish",
+    "order": 29,
+    "count": 12
+  },
+  {
+    "id": 113,
+    "name": "Turar joy dahalarida harakatlanish",
+    "description": "Turar joy dahalarida harakatlanish",
+    "order": 30,
+    "count": 13
+  },
+  {
+    "id": 114,
+    "name": "Tik balandlik va nishabliklarda harakatlanish",
+    "description": "Balandlik va nishabliklarda harakatlanish",
+    "order": 31,
+    "count": 4
+  },
+  {
+    "id": 115,
+    "name": "Yo‘nalishli transport vositalarining imtiyozlari",
+    "description": "Yo‘nalishli transport imtiyozlari",
+    "order": 32,
+    "count": 9
+  },
+  {
+    "id": 116,
+    "name": "Tashqi yoritish asboblaridan foydalanish",
+    "description": "Tashqi yoritish asboblari",
+    "order": 33,
+    "count": 26
+  },
+  {
+    "id": 117,
+    "name": "Mexanik transport vositalarini shatakka olish",
+    "description": "Transport vositalarini shatakka olish",
+    "order": 34,
+    "count": 22
+  },
+  {
+    "id": 118,
+    "name": "Transport vositalarini boshqarishni o‘rgatish",
+    "description": "Haydashni o‘rgatish",
+    "order": 35,
+    "count": 25
+  },
+  {
+    "id": 119,
+    "name": "Odam tashish",
+    "description": "Odam tashish qoidalari",
+    "order": 36,
+    "count": 23
+  },
+  {
+    "id": 120,
+    "name": "Yuk tashish",
+    "description": "Yuk tashish qoidalari",
+    "order": 37,
+    "count": 18
+  },
+  {
+    "id": 121,
+    "name": "Velosiped, moped va aravalar harakatlanishiga qo‘shimcha talablar",
+    "description": "Velosiped va moped qoidalari",
+    "order": 38,
+    "count": 6
+  },
+  {
+    "id": 122,
+    "name": "Mansabdor shaxslarning majburiyatlari",
+    "description": "Mansabdor shaxslar majburiyatlari",
+    "order": 39,
+    "count": 4
+  },
+  {
+    "id": 123,
+    "name": "Yo‘l chiziqlari",
+    "description": "Yo‘l chiziqlari va belgilanishlari",
+    "order": 40,
+    "count": 85
+  },
+  {
+    "id": 124,
+    "name": "Transport vositalaridan foydalanishni taqiqlovchi shartlar",
+    "description": "Foydalanishni taqiqlovchi shartlar",
+    "order": 41,
+    "count": 57
+  }
+]
