@@ -1,7 +1,6 @@
 import { useEffect } from "react";
-import { Outlet } from "react-router-dom";
-import { Sun, Moon } from "lucide-react";
-import { BottomNav } from "@/components/BottomNav";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Sun, Moon, ArrowLeft } from "lucide-react";
 import { useReview } from "@/store/useReview";
 import { useTheme } from "@/store/useTheme";
 import { isDue } from "@/lib/fsrs";
@@ -12,48 +11,49 @@ export function Layout() {
   const cards = useReview((s) => s.cards);
   const dueCount = Object.values(cards).filter((c) => isDue(c)).length;
   const { dark, toggle } = useTheme();
+  const nav = useNavigate();
+  const { pathname } = useLocation();
+  const isHome = pathname === "/";
 
-  // Telegram init + theme sync
   useEffect(() => {
     TG.ready();
     TG.expand();
-    TG.applyTheme(); // syncs dark mode + CSS vars
-    TG.hideBack(); // hide back button on main routes
-
-    // re-apply on theme change event (user changes Telegram theme)
+    TG.applyTheme();
+    TG.hideBack();
     const wa = window.Telegram?.WebApp;
     if (wa) wa.onEvent("themeChanged", TG.applyTheme);
     return () => { if (wa) wa.offEvent("themeChanged", TG.applyTheme); };
   }, []);
 
-  // CloudStorage sync
   useTelegramSync();
 
   return (
-    <div className="min-h-dvh pb-20">
+    <div className="min-h-dvh">
       <header className="sticky top-0 z-10 bg-card/90 backdrop-blur border-b-2 border-line">
-        <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">
-          <span className="font-extrabold text-lg text-grass-dark">AvtoTest</span>
-          <div className="flex items-center gap-3">
-            {dueCount > 0 && (
-              <span className="rounded-full bg-fox/15 text-fox px-3 py-1 text-sm font-extrabold">
-                {dueCount} ta takrorlash
-              </span>
-            )}
-            <button
-              onClick={toggle}
-              aria-label="Mavzu almashtirish"
-              className="grid h-9 w-9 place-items-center rounded-full border-2 border-line text-faint hover:bg-muted"
-            >
-              {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        <div className="max-w-xl mx-auto px-4 py-3 flex items-center gap-3">
+          {!isHome && (
+            <button onClick={() => nav("/")} className="text-faint hover:text-fg">
+              <ArrowLeft className="h-6 w-6" />
             </button>
-          </div>
+          )}
+          <span className="font-extrabold text-lg text-grass-dark flex-1">AvtoTest</span>
+          {dueCount > 0 && (
+            <span className="rounded-full bg-fox/15 text-fox px-3 py-1 text-sm font-extrabold">
+              {dueCount} ta takrorlash
+            </span>
+          )}
+          <button
+            onClick={toggle}
+            aria-label="Mavzu almashtirish"
+            className="grid h-9 w-9 place-items-center rounded-full border-2 border-line text-faint hover:bg-muted"
+          >
+            {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
         </div>
       </header>
-      <div className="max-w-xl mx-auto px-4">
+      <div className="max-w-xl mx-auto px-4 pb-8">
         <Outlet />
       </div>
-      <BottomNav dueCount={dueCount} />
     </div>
   );
 }
