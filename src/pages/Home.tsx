@@ -1,5 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+const UZ_MONTHS = [
+  "yanvar","fevral","mart","aprel","may","iyun",
+  "iyul","avgust","sentyabr","oktyabr","noyabr","dekabr",
+];
+function formatUzDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getDate()} ${UZ_MONTHS[d.getMonth()]} ${d.getFullYear()} yil`;
+}
 import {
   CalendarClock, ClipboardList, Layers, AlertTriangle,
   ChevronRight, CheckCircle2, BarChart2, ClipboardCheck, Pencil,
@@ -105,7 +114,7 @@ export default function Home() {
                    `Imtihonga ${days} kun qoldi`}
                 </div>
                 <div className="text-xs text-faint font-semibold mt-1">
-                  {new Date(examDate).toLocaleDateString("uz-UZ", { day: "numeric", month: "long", year: "numeric" })}
+                  {formatUzDate(examDate)}
                 </div>
               </div>
               <Pencil className="h-4 w-4 text-faint shrink-0" />
@@ -255,9 +264,6 @@ export default function Home() {
           </div>
         </Card>
 
-        <p className="text-center text-xs text-faint font-semibold pt-2">
-          Ma'lumotlar manbai: tezkoravtotest.uz
-        </p>
       </div>
 
       <ExamDateDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />

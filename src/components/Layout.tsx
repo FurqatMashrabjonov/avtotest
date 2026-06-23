@@ -1,15 +1,11 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Sun, Moon, ArrowLeft } from "lucide-react";
-import { useReview } from "@/store/useReview";
 import { useTheme } from "@/store/useTheme";
-import { isDue } from "@/lib/fsrs";
 import { TG } from "@/lib/telegram";
 import { useTelegramSync } from "@/hooks/useTelegramSync";
 
 export function Layout() {
-  const cards = useReview((s) => s.cards);
-  const dueCount = Object.values(cards).filter((c) => isDue(c)).length;
   const { dark, toggle } = useTheme();
   const nav = useNavigate();
   const { pathname } = useLocation();
@@ -37,11 +33,6 @@ export function Layout() {
             </button>
           )}
           <span className="font-extrabold text-lg text-grass-dark flex-1">AvtoTest</span>
-          {dueCount > 0 && (
-            <span className="rounded-full bg-fox/15 text-fox px-3 py-1 text-sm font-extrabold">
-              {dueCount} ta takrorlash
-            </span>
-          )}
           <button
             onClick={toggle}
             aria-label="Mavzu almashtirish"
