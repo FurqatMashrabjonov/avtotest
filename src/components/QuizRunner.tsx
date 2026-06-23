@@ -208,7 +208,7 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
 
       {/* footer: only on wrong */}
       {checked && !isCorrect && (
-        <footer className="sticky bottom-0 -mx-4 px-4 py-4 border-t-2 border-cardinal/30 bg-cardinal/10">
+        <footer className="sticky bottom-0 -mx-4 px-4 py-4">
           <Button variant="danger" size="lg" className="w-full" onClick={goNext}>
             Davom etish
           </Button>
