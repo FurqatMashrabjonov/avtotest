@@ -11,13 +11,13 @@ function formatUzDate(iso: string) {
 }
 import {
   CalendarClock, ClipboardList, Layers, AlertTriangle,
-  ChevronRight, CheckCircle2, BarChart2, ClipboardCheck, Pencil,
+  ChevronRight, Pencil,
 } from "lucide-react";
 import { categories, questions as allQuestions, testBlocks, questionsByCategory } from "@/lib/data";
 import { useGame } from "@/store/useGame";
 import { useReview, testKey, catKey } from "@/store/useReview";
 import { useSettings, daysToExam } from "@/store/useSettings";
-import { isDue, dueLabel } from "@/lib/fsrs";
+import { isDue } from "@/lib/fsrs";
 import { ExamDateDrawer } from "@/components/ExamDateDrawer";
 import { cn } from "@/lib/utils";
 
@@ -70,19 +70,6 @@ export default function Home() {
 
   // exam countdown
   const days = daysToExam(examDate);
-
-  // calendar preview
-  const upcoming = Object.entries(cards)
-    .map(([key, card]) => ({ key, card }))
-    .sort((a, b) => new Date(a.card.due).getTime() - new Date(b.card.due).getTime())
-    .slice(0, 4);
-
-  function upcomingLabel(key: string) {
-    const [kind, id] = key.split(":");
-    if (kind === "test") return `${id}-test`;
-    const cat = categories.find((c) => String(c.id) === id);
-    return cat?.name ?? "Mavzu";
-  }
 
   return (
     <>
@@ -210,57 +197,21 @@ export default function Home() {
           </Card>
         )}
 
-        {/* Kalendar preview */}
-        <Card onClick={() => nav("/calendar")}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 font-extrabold">
-              <CalendarClock className="h-5 w-5 text-fox" />
-              Kalendar
-            </div>
-            <span className="text-xs font-bold text-faint">Barchasi →</span>
-          </div>
-          {upcoming.length === 0 ? (
-            <p className="text-sm text-faint font-semibold">Hali birorta test topshirilmagan.</p>
-          ) : (
-            <div className="space-y-2">
-              {upcoming.map(({ key, card }) => {
-                const due = isDue(card);
-                return (
-                  <div key={key} className="flex items-center gap-2 text-sm">
-                    <span className={cn("h-2 w-2 rounded-full shrink-0", due ? "bg-fox" : "bg-sky")} />
-                    <span className="flex-1 font-semibold truncate">{upcomingLabel(key)}</span>
-                    <span className={cn("font-bold shrink-0", due ? "text-fox" : "text-faint")}>
-                      {dueLabel(card)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-
-        {/* Statistika */}
+        {/* Statistika — kompakt */}
         <Card>
-          <div className="flex items-center gap-2 font-extrabold mb-3">
-            <BarChart2 className="h-5 w-5 text-sky" />
-            Statistika
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <StatCell
-              icon={<ClipboardCheck className="h-5 w-5 text-grass mx-auto" />}
-              value={`${solvedIds.length}`}
-              label="O'rganildi"
-            />
-            <StatCell
-              icon={<CalendarClock className="h-5 w-5 text-fox mx-auto" />}
-              value={`${Object.keys(cards).length}`}
-              label="FSRS karta"
-            />
-            <StatCell
-              icon={<CheckCircle2 className="h-5 w-5 text-sky mx-auto" />}
-              value={`${solvedPct}%`}
-              label="Tugallangan"
-            />
+          <div className="flex justify-around divide-x divide-line text-center">
+            <div className="flex-1 px-2">
+              <div className="font-extrabold text-xl">{solvedIds.length}</div>
+              <div className="text-[11px] text-faint font-semibold">Savollar</div>
+            </div>
+            <div className="flex-1 px-2">
+              <div className="font-extrabold text-xl">{Object.keys(cards).length}</div>
+              <div className="text-[11px] text-faint font-semibold">FSRS karta</div>
+            </div>
+            <div className="flex-1 px-2">
+              <div className="font-extrabold text-xl">{solvedPct}%</div>
+              <div className="text-[11px] text-faint font-semibold">Tugallangan</div>
+            </div>
           </div>
         </Card>
 
@@ -271,12 +222,3 @@ export default function Home() {
   );
 }
 
-function StatCell({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
-  return (
-    <div className="rounded-xl bg-muted p-2.5">
-      {icon}
-      <div className="font-extrabold text-lg mt-1">{value}</div>
-      <div className="text-[11px] text-faint font-semibold leading-tight">{label}</div>
-    </div>
-  );
-}

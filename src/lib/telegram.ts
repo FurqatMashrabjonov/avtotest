@@ -98,23 +98,39 @@ export const TG = {
       wa()?.CloudStorage?.getKeys((e, k) => (e ? rej(e) : res(k ?? []))) ?? res([])
     ),
 
-  // Apply Telegram theme colors as CSS vars (call once on init)
+  // Apply Telegram theme colors — maps TG params to our CSS tokens
   applyTheme: () => {
-    const p = wa()?.themeParams;
-    if (!p) return;
+    const app = wa();
+    if (!app) return;
+    const p = app.themeParams;
     const root = document.documentElement;
     const set = (v: string, val?: string) => val && root.style.setProperty(v, val);
+
+    // surface tokens
+    if (p.bg_color) {
+      set("--color-bg", p.bg_color);
+      set("--color-card", p.bg_color);
+    }
+    if (p.secondary_bg_color) {
+      set("--color-muted", p.secondary_bg_color);
+    }
+    if (p.text_color)  set("--color-fg",    p.text_color);
+    if (p.hint_color)  set("--color-faint", p.hint_color);
+
+    // accent (button_color → grass)
+    if (p.button_color) set("--color-grass", p.button_color);
+
+    // raw TG vars (kept for reference)
     set("--tg-bg", p.bg_color);
+    set("--tg-secondary-bg", p.secondary_bg_color);
     set("--tg-text", p.text_color);
     set("--tg-hint", p.hint_color);
-    set("--tg-link", p.link_color);
     set("--tg-btn", p.button_color);
     set("--tg-btn-text", p.button_text_color);
-    set("--tg-secondary-bg", p.secondary_bg_color);
-    set("--tg-header-bg", p.header_bg_color);
-    // sync dark mode
-    const dark = wa()?.colorScheme === "dark";
-    document.documentElement.classList.toggle("dark", dark);
+
+    // dark mode from TG colorScheme
+    const dark = app.colorScheme === "dark";
+    root.classList.toggle("dark", dark);
     try { localStorage.setItem("avtotest-theme", dark ? "dark" : "light"); } catch {}
   },
 };
