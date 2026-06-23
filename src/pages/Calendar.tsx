@@ -175,16 +175,17 @@ export default function Calendar() {
       )}
 
       {/* Heatmap */}
-      <div className="mt-4 rounded-2xl border-2 border-line bg-card p-4 overflow-x-auto">
+      <div className="mt-4 rounded-2xl border-2 border-line bg-card p-4">
+        <div className="overflow-x-auto">
         {/* day-of-week header */}
-        <div className="grid grid-cols-7 gap-1 mb-1">
+        <div className="inline-grid grid-cols-7 gap-1 mb-1">
           {UZ_DAYS_SHORT.map((d) => (
-            <div key={d} className="text-center text-[10px] font-bold text-faint">{d}</div>
+            <div key={d} className="w-7 text-center text-[10px] font-bold text-faint">{d}</div>
           ))}
         </div>
 
         {/* cells */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="inline-grid grid-cols-7 gap-1">
           {slots.map((ms, i) => {
             const k = isoDay(ms);
             const isToday = ms === today;
@@ -199,7 +200,7 @@ export default function Calendar() {
                 onClick={() => setSelectedDay(isSelected ? null : ms)}
                 title={`${new Date(ms).getDate()} ${UZ_MONTHS[new Date(ms).getMonth()]}`}
                 className={cn(
-                  "aspect-square rounded-md transition-all relative flex items-center justify-center text-[10px] font-bold",
+                  "h-7 w-7 rounded-md transition-all relative flex items-center justify-center text-[10px] font-bold",
                   isToday
                     ? "bg-grass text-white ring-2 ring-grass ring-offset-1"
                     : isExam
@@ -222,6 +223,8 @@ export default function Calendar() {
             );
           })}
         </div>
+
+        </div>{/* end overflow-x-auto */}
 
         {/* legend */}
         <div className="mt-4 flex flex-wrap gap-3 text-[11px] font-semibold text-faint">
