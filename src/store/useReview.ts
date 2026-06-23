@@ -10,6 +10,7 @@ export const catKey = (id: number | string) => `cat:${id}`;
 interface ReviewState {
   cards: Record<string, StoredCard>;
   review: (key: string, grade: Grade) => void;
+  importCard: (key: string, card: StoredCard) => void; // used by CloudStorage sync
   getCard: (key: string) => StoredCard | undefined;
   reset: () => void;
 }
@@ -20,6 +21,8 @@ export const useReview = create<ReviewState>()(
       cards: {},
       review: (key, grade) =>
         set((s) => ({ cards: { ...s.cards, [key]: reviewCard(s.cards[key], grade) } })),
+      importCard: (key, card) =>
+        set((s) => ({ cards: { ...s.cards, [key]: card } })),
       getCard: (key) => get().cards[key],
       reset: () => set({ cards: {} }),
     }),

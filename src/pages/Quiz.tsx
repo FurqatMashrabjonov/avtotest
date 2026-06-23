@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { QuizRunner, type QuizConfig, type QuizResult } from "@/components/QuizRunner";
 import { ResultScreen } from "@/pages/Results";
@@ -12,14 +12,25 @@ import {
 import { useGame } from "@/store/useGame";
 import { useReview, testKey, catKey } from "@/store/useReview";
 import { ratingFromResult } from "@/lib/fsrs";
+import { TG } from "@/lib/telegram";
 import { shuffle } from "@/lib/utils";
+
+const TEST_DURATION_SECS = 25 * 60;
 
 export default function Quiz() {
   const { mode, id } = useParams();
   const nav = useNavigate();
   const mistakeIds = useGame((s) => s.mistakeIds);
-  const review = useReview((s) => s.review);
+  const reviewStore = useReview((s) => s.review);
   const [result, setResult] = useState<QuizResult | null>(null);
+  const backCb = useRef(() => nav("/"));
+
+  // Telegram back button
+  useEffect(() => {
+    const cb = backCb.current;
+    TG.showBack(cb);
+    return () => TG.hideBack(cb);
+  }, []);
 
   const config = useMemo<QuizConfig | null>(() => {
     if (mode === "category" && id) {
@@ -31,22 +42,27 @@ export default function Quiz() {
     if (mode === "test" && id) {
       const block = getBlock(Number(id));
       if (!block?.length) return null;
-      // sequential order (real test), pass if <= 2 wrong
-      return { title: `${id}-test`, questions: block, passMaxWrong: TEST_PASS_MAX_WRONG };
+      return {
+        title: `${id}-test`,
+        questions: block,
+        passMaxWrong: TEST_PASS_MAX_WRONG,
+        durationSecs: TEST_DURATION_SECS,
+      };
     }
     if (mode === "mistakes") {
-      const qs = mistakeIds.map(getQuestion).filter(Boolean) as ReturnType<typeof getQuestion>[];
+      const qs = mistakeIds
+        .map(getQuestion)
+        .filter((q): q is NonNullable<typeof q> => q != null);
       if (!qs.length) return null;
-      return { title: "Xatolar ustida ish", questions: shuffle(qs as any) };
+      return { title: "Xatolar ustida ish", questions: shuffle(qs) };
     }
     return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, id]);
 
-  // schedule next review (FSRS) on completion of a test/topic
   function handleDone(r: QuizResult) {
-    if (mode === "test" && id) review(testKey(id), ratingFromResult(r));
-    else if (mode === "category" && id) review(catKey(id), ratingFromResult(r));
+    if (mode === "test" && id) reviewStore(testKey(id), ratingFromResult(r));
+    else if (mode === "category" && id) reviewStore(catKey(id), ratingFromResult(r));
     setResult(r);
   }
 
@@ -71,10 +87,7 @@ export default function Quiz() {
         result={result}
         title={config.title}
         reviewKey={reviewKey}
-        onRetry={() => {
-          setResult(null);
-          nav(0); // reload to reshuffle
-        }}
+        onRetry={() => { setResult(null); nav(0); }}
         onHome={() => nav("/")}
         onReviewMistakes={result.wrongIds.length ? () => nav("/quiz/mistakes") : undefined}
       />

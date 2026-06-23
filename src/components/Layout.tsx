@@ -1,14 +1,33 @@
+import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Sun, Moon } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { useReview } from "@/store/useReview";
 import { useTheme } from "@/store/useTheme";
 import { isDue } from "@/lib/fsrs";
+import { TG } from "@/lib/telegram";
+import { useTelegramSync } from "@/hooks/useTelegramSync";
 
 export function Layout() {
   const cards = useReview((s) => s.cards);
   const dueCount = Object.values(cards).filter((c) => isDue(c)).length;
   const { dark, toggle } = useTheme();
+
+  // Telegram init + theme sync
+  useEffect(() => {
+    TG.ready();
+    TG.expand();
+    TG.applyTheme(); // syncs dark mode + CSS vars
+    TG.hideBack(); // hide back button on main routes
+
+    // re-apply on theme change event (user changes Telegram theme)
+    const wa = window.Telegram?.WebApp;
+    if (wa) wa.onEvent("themeChanged", TG.applyTheme);
+    return () => { if (wa) wa.offEvent("themeChanged", TG.applyTheme); };
+  }, []);
+
+  // CloudStorage sync
+  useTelegramSync();
 
   return (
     <div className="min-h-dvh pb-20">

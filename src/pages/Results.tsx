@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Trophy, CheckCircle2, Target, RotateCcw, CalendarClock } from "lucide-react";
+import confetti from "canvas-confetti";
 import type { QuizResult } from "@/components/QuizRunner";
 import { Button } from "@/components/ui/button";
 import { useReview } from "@/store/useReview";
@@ -35,10 +37,21 @@ export function ResultScreen({
   onReviewMistakes?: () => void;
 }) {
   const win = result.passed;
+  const perfect = result.wrong === 0;
   const accuracy = result.total ? Math.round((result.correct / result.total) * 100) : 0;
   const card = useReview((s) => (reviewKey ? s.cards[reviewKey] : undefined));
 
-  const headline = win ? "Ajoyib!" : "Yakunlandi";
+  const headline =
+    result.reason === "timeout" ? "Vaqt tugadi ⏱" : perfect ? "Mukammal! 🌟" : win ? "Ajoyib!" : "Yakunlandi";
+
+  useEffect(() => {
+    if (perfect) {
+      confetti({ particleCount: 140, spread: 80, colors: ["#58cc02", "#ffc800", "#1cb0f6", "#ff9600"] });
+    } else if (win) {
+      confetti({ particleCount: 60, spread: 55, colors: ["#58cc02", "#89e219"] });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center max-w-xl mx-auto px-6 text-center">

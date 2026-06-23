@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#58cc02"/>
+  <!-- road -->
+  <rect x="220" y="160" width="72" height="240" rx="4" fill="#58a700" opacity=".5"/>
+  <rect x="246" y="180" width="20" height="40" rx="4" fill="white" opacity=".7"/>
+  <rect x="246" y="246" width="20" height="40" rx="4" fill="white" opacity=".7"/>
+  <rect x="246" y="312" width="20" height="40" rx="4" fill="white" opacity=".7"/>
+  <!-- car body -->
+  <rect x="130" y="296" width="252" height="90" rx="22" fill="white"/>
+  <rect x="162" y="238" width="188" height="80" rx="18" fill="white"/>
+  <!-- windows -->
+  <rect x="178" y="252" width="68" height="54" rx="10" fill="#1cb0f6"/>
+  <rect x="266" y="252" width="68" height="54" rx="10" fill="#1cb0f6"/>
+  <!-- wheels -->
+  <circle cx="184" cy="390" r="38" fill="#3c3c3c"/>
+  <circle cx="184" cy="390" r="20" fill="#93a4ad"/>
+  <circle cx="328" cy="390" r="38" fill="#3c3c3c"/>
+  <circle cx="328" cy="390" r="20" fill="#93a4ad"/>
+  <!-- headlights -->
+  <rect x="130" y="316" width="28" height="18" rx="6" fill="#ffc800"/>
+  <rect x="354" y="316" width="28" height="18" rx="6" fill="#ffc800"/>
+</svg>

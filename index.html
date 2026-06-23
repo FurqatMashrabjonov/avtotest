@@ -10,13 +10,17 @@
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <title>AvtoTest — Haydovchilik guvohnomasi testlari</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-      // apply theme before paint (no flash)
+      // apply theme before paint — Telegram overrides localStorage
       try {
-        var t = localStorage.getItem("avtotest-theme");
-        if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches))
-          document.documentElement.classList.add("dark");
+        var tg = window.Telegram && window.Telegram.WebApp;
+        var dark = tg ? tg.colorScheme === "dark"
+          : (localStorage.getItem("avtotest-theme") === "dark" ||
+             (!localStorage.getItem("avtotest-theme") && matchMedia("(prefers-color-scheme: dark)").matches));
+        if (dark) document.documentElement.classList.add("dark");
       } catch (e) {}
     </script>
   </head>
