@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Volume2, Clock } from "lucide-react";
+import { X, Clock } from "lucide-react";
 import type { Question } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -46,7 +46,13 @@ function fmt(secs: number) {
     .padStart(2, "0")}`;
 }
 
-export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r: QuizResult) => void }) {
+export function QuizRunner({
+  config, onDone, onExitClick,
+}: {
+  config: QuizConfig;
+  onDone: (r: QuizResult) => void;
+  onExitClick?: () => void;
+}) {
   const { questions, passMaxWrong, durationSecs } = config;
   const nav = useNavigate();
   const recordAnswer = useGame((s) => s.recordAnswer);
@@ -131,19 +137,11 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
     });
   }
 
-  function speak() {
-    if (!("speechSynthesis" in window)) return;
-    const u = new SpeechSynthesisUtterance(q.text);
-    u.lang = "uz-UZ";
-    speechSynthesis.cancel();
-    speechSynthesis.speak(u);
-  }
-
   return (
     <div className="flex flex-col min-h-dvh max-w-xl mx-auto px-4">
       {/* top bar */}
       <header className="flex items-center gap-3 py-4">
-        <button onClick={() => nav("/")} className="text-faint hover:text-fg">
+        <button onClick={() => onExitClick ? onExitClick() : nav("/")} className="text-faint hover:text-fg">
           <X className="h-7 w-7" />
         </button>
         <Progress value={progress} className="flex-1" />
@@ -174,12 +172,7 @@ export function QuizRunner({ config, onDone }: { config: QuizConfig; onDone: (r:
             exit={{ opacity: 0, x: -30 }}
             transition={{ duration: 0.18 }}
           >
-            <div className="flex items-start gap-2 mb-4">
-              <h1 className="text-xl font-extrabold leading-snug flex-1">{q.text}</h1>
-              <button onClick={speak} className="text-sky shrink-0 mt-1">
-                <Volume2 className="h-6 w-6" />
-              </button>
-            </div>
+            <h1 className="text-xl font-extrabold leading-snug mb-4">{q.text}</h1>
 
             {q.image && <ZoomImage key={q.image} src={q.image} className="mb-4" />}
 
