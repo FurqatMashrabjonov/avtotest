@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarClock, ClipboardList, Layers, AlertCircle } from "lucide-react";
+import { CalendarClock, ClipboardList, Layers } from "lucide-react";
 import { categoryById } from "@/lib/data";
 import { useReview } from "@/store/useReview";
 import { useSettings } from "@/store/useSettings";
@@ -129,7 +129,6 @@ export default function Calendar() {
     buckets.get(day)!.push(it);
   }
   const allDays = [...buckets.keys()].sort((a, b) => a - b);
-  const overdueCount = items.filter((it) => new Date(it.card.due).getTime() <= Date.now()).length;
 
   const selectedItems = selectedDay != null ? (buckets.get(selectedDay) ?? []) : [];
 
@@ -155,17 +154,6 @@ export default function Calendar() {
   return (
     <div className="pb-6">
       <h1 className="pt-5 text-2xl font-extrabold">Kalendar</h1>
-      {examDate && (
-        <p className="text-sm text-faint font-semibold">
-          Imtihonga qadar: {UZ_MONTHS[new Date(examDate).getMonth()]} {new Date(examDate).getDate()}
-        </p>
-      )}
-
-      {overdueCount > 0 && (
-        <div className="mt-3 rounded-2xl border-2 border-fox bg-fox/10 px-4 py-3 flex items-center gap-2 font-extrabold text-fox">
-          <AlertCircle className="h-5 w-5" /> Bugun {overdueCount} ta takrorlash kerak
-        </div>
-      )}
 
       {/* Heatmap */}
       <div className="mt-4 rounded-2xl border-2 border-line bg-card p-4">
@@ -253,8 +241,11 @@ export default function Calendar() {
         {selectedDay != null ? (
           selectedItems.length ? (
             <div>
-              <div className="text-sm font-extrabold uppercase tracking-wide mb-2 text-fg">
-                {dayLabel(selectedDay)}
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-extrabold uppercase tracking-wide text-fg">
+                  {dayLabel(selectedDay)}
+                </div>
+                <span className="text-xs font-bold text-faint">{selectedItems.length} ta bilet</span>
               </div>
               <div className="grid gap-2">
                 {selectedItems.map((it) => (
@@ -271,8 +262,11 @@ export default function Calendar() {
             const isToday = day === today;
             return (
               <div key={day}>
-                <div className={cn("text-sm font-extrabold uppercase tracking-wide mb-2", isToday ? "text-fox" : "text-faint")}>
-                  {dayLabel(day)}
+                <div className="flex items-center justify-between mb-2">
+                  <div className={cn("text-sm font-extrabold uppercase tracking-wide", isToday ? "text-fox" : "text-faint")}>
+                    {dayLabel(day)}
+                  </div>
+                  <span className="text-xs font-bold text-faint">{list.length} ta bilet</span>
                 </div>
                 <div className="grid gap-2">
                   {list.map((it) => <ItemCard key={it.key} it={it} isToday={isToday} nav={nav} />)}
