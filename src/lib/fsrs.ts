@@ -1,8 +1,9 @@
 import { fsrs, generatorParameters, createEmptyCard, Rating, type Card, type Grade } from "ts-fsrs";
 import type { QuizResult } from "@/components/QuizRunner";
 
-// maximum_interval caps "mastered" spacing at ~2.5 months (75 days), not the 36500-day default
-const scheduler = fsrs(generatorParameters({ enable_fuzz: true, maximum_interval: 75 }));
+function makeScheduler(maxInterval = 75) {
+  return fsrs(generatorParameters({ enable_fuzz: true, maximum_interval: maxInterval }));
+}
 
 // Card stored with ISO date strings (JSON-safe for localStorage)
 export interface StoredCard extends Omit<Card, "due" | "last_review"> {
@@ -33,9 +34,9 @@ export function ratingFromResult(r: QuizResult): Grade {
 }
 
 // advance a card by one review; returns next StoredCard
-export function reviewCard(prev: StoredCard | undefined, grade: Grade, now = new Date()): StoredCard {
+export function reviewCard(prev: StoredCard | undefined, grade: Grade, now = new Date(), maxInterval = 75): StoredCard {
   const card = prev ? fromStored(prev) : createEmptyCard(now);
-  const { card: next } = scheduler.next(card, now, grade);
+  const { card: next } = makeScheduler(maxInterval).next(card, now, grade);
   return toStored(next);
 }
 

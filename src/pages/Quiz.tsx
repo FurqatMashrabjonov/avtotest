@@ -12,6 +12,7 @@ import {
 import { useGame } from "@/store/useGame";
 import { useReview, testKey, catKey } from "@/store/useReview";
 import { ratingFromResult } from "@/lib/fsrs";
+import { useSettings, fsrsMaxInterval } from "@/store/useSettings";
 import { TG } from "@/lib/telegram";
 import { shuffle } from "@/lib/utils";
 
@@ -22,6 +23,8 @@ export default function Quiz() {
   const nav = useNavigate();
   const mistakeIds = useGame((s) => s.mistakeIds);
   const reviewStore = useReview((s) => s.review);
+  const examDate = useSettings((s) => s.examDate);
+  const maxInterval = fsrsMaxInterval(examDate);
   const [result, setResult] = useState<QuizResult | null>(null);
   const backCb = useRef(() => nav("/"));
 
@@ -61,8 +64,8 @@ export default function Quiz() {
   }, [mode, id]);
 
   function handleDone(r: QuizResult) {
-    if (mode === "test" && id) reviewStore(testKey(id), ratingFromResult(r));
-    else if (mode === "category" && id) reviewStore(catKey(id), ratingFromResult(r));
+    if (mode === "test" && id) reviewStore(testKey(id), ratingFromResult(r), maxInterval);
+    else if (mode === "category" && id) reviewStore(catKey(id), ratingFromResult(r), maxInterval);
     setResult(r);
   }
 
