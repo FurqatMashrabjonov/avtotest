@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarClock, ClipboardList, Layers, AlertCircle } from "lucide-react";
 import { categoryById } from "@/lib/data";
@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import type { StoredCard } from "@/lib/fsrs";
 
 const DAY = 86400000;
+const CELL = 28; // px
+const GAP = 4;   // px
 
 const UZ_MONTHS = [
   "Yanvar","Fevral","Mart","Aprel","May","Iyun",
@@ -16,70 +18,58 @@ const UZ_MONTHS = [
 const UZ_DAYS_SHORT = ["Du","Se","Ch","Pa","Ju","Sh","Ya"];
 
 function sod(ms: number) {
-  const d = new Date(ms);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
+  const d = new Date(ms); d.setHours(0,0,0,0); return d.getTime();
 }
-
 function mondayOf(ms: number) {
   const d = new Date(ms);
-  const dow = d.getDay(); // 0=Sun
-  const diff = dow === 0 ? -6 : 1 - dow;
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
+  const diff = d.getDay() === 0 ? -6 : 1 - d.getDay();
+  d.setDate(d.getDate() + diff); d.setHours(0,0,0,0);
   return d.getTime();
 }
-
-function sundayOf(ms: number) {
-  const d = new Date(ms);
-  const dow = d.getDay();
-  const diff = dow === 0 ? 0 : 7 - dow;
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-function isoDay(ms: number) {
-  return new Date(ms).toISOString().slice(0, 10);
-}
+function isoDay(ms: number) { return new Date(ms).toISOString().slice(0,10); }
 
 interface Item {
-  key: string;
-  card: StoredCard;
-  isTest: boolean;
-  title: string;
-  route: string;
+  key: string; card: StoredCard;
+  isTest: boolean; title: string; route: string;
 }
-
 function resolve(key: string, card: StoredCard): Item {
   const [kind, id] = key.split(":");
-  if (kind === "test") {
+  if (kind === "test")
     return { key, card, isTest: true, title: `${id}-test`, route: `/quiz/test/${id}` };
-  }
   const cat = categoryById.get(Number(id));
   return { key, card, isTest: false, title: cat?.name ?? "Mavzu", route: `/quiz/category/${id}` };
-}
-
-function dayLabel(ms: number, today: number): string {
-  if (ms <= today) return "Bugun";
-  if (ms === today + DAY) return "Ertaga";
-  const d = new Date(ms);
-  return `${d.getDate()} ${UZ_MONTHS[d.getMonth()]}`;
 }
 
 export default function Calendar() {
   const nav = useNavigate();
   const cards = useReview((s) => s.cards);
   const { examDate } = useSettings();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const today = sod(Date.now());
   const examMs = examDate ? sod(new Date(examDate).getTime()) : today + 60 * DAY;
 
-  // heatmap range: 4 weeks back → exam day
+  // range: 4 weeks back → exam day (aligned to Mon/Sun)
   const rangeStart = mondayOf(today - 28 * DAY);
-  const rangeEnd = sundayOf(examMs);
+  const rangeEnd = (() => {
+    const d = new Date(examMs);
+    const diff = d.getDay() === 0 ? 0 : 7 - d.getDay();
+    d.setDate(d.getDate() + diff); d.setHours(0,0,0,0);
+    return d.getTime();
+  })();
 
-  // build past map (last_review → count) and future map (due → count)
+  // build weeks: array of 7-day arrays (Mon=0 … Sun=6), null if out of range
+  const weeks: (number | null)[][] = [];
+  for (let w = rangeStart; w <= rangeEnd; w += 7 * DAY) {
+    const week: (number | null)[] = [];
+    for (let d = 0; d < 7; d++) {
+      const ms = w + d * DAY;
+      week.push(ms >= rangeStart && ms <= rangeEnd ? ms : null);
+    }
+    weeks.push(week);
+  }
+
+  // maps
   const pastMap: Record<string, number> = {};
   const futureMap: Record<string, number> = {};
   for (const card of Object.values(cards)) {
@@ -94,28 +84,43 @@ export default function Calendar() {
     }
   }
 
-  // all day slots for grid
-  const slots: number[] = [];
-  for (let d = rangeStart; d <= rangeEnd; d += DAY) slots.push(d);
-
-  // month label positions: first cell of each new month
+  // month labels: first week-column where month changes
   const monthLabels: Record<number, string> = {};
-  let lastMonth = -1;
-  for (let i = 0; i < slots.length; i++) {
-    const d = new Date(slots[i]);
-    if (d.getMonth() !== lastMonth) {
-      monthLabels[i] = UZ_MONTHS[d.getMonth()];
-      lastMonth = d.getMonth();
+  let lastM = -1;
+  weeks.forEach((week, wi) => {
+    const first = week.find((ms) => ms != null);
+    if (first != null) {
+      const m = new Date(first).getMonth();
+      if (m !== lastM) { monthLabels[wi] = UZ_MONTHS[m]; lastM = m; }
     }
+  });
+
+  // cell color
+  function cellBg(ms: number) {
+    const k = isoDay(ms);
+    if (ms < today) {
+      const n = pastMap[k] ?? 0;
+      return n === 0 ? "bg-line/40" : n === 1 ? "bg-grass/50" : "bg-grass/90";
+    }
+    if (ms === today) return "";
+    if (ms === examMs) return "";
+    const n = futureMap[k] ?? 0;
+    return n === 0 ? "bg-line/20" : n === 1 ? "bg-fox/30" : n === 2 ? "bg-fox/60" : "bg-fox";
   }
 
-  const items = Object.entries(cards).map(([k, c]) => resolve(k, c));
+  // auto-scroll so today's week is visible (centered-ish)
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    const todayWeekIdx = Math.floor((mondayOf(today) - rangeStart) / (7 * DAY));
+    const x = todayWeekIdx * (CELL + GAP) - 40; // show a couple weeks before today
+    scrollRef.current.scrollLeft = Math.max(0, x);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // selected day state
+  // list below
+  const items = Object.entries(cards).map(([k, c]) => resolve(k, c));
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
-  // items for selected / all due
-  const displayDay = selectedDay ?? null;
   const buckets = new Map<number, Item[]>();
   for (const it of items) {
     let day = sod(new Date(it.card.due).getTime());
@@ -126,25 +131,13 @@ export default function Calendar() {
   const allDays = [...buckets.keys()].sort((a, b) => a - b);
   const overdueCount = items.filter((it) => new Date(it.card.due).getTime() <= Date.now()).length;
 
-  const selectedItems: Item[] = displayDay !== null
-    ? (buckets.get(displayDay) ?? [])
-    : [];
+  const selectedItems = selectedDay != null ? (buckets.get(selectedDay) ?? []) : [];
 
-  function cellColor(ms: number) {
-    const k = isoDay(ms);
-    const isPast = ms < today;
-    if (isPast) {
-      const n = pastMap[k] ?? 0;
-      if (n === 0) return "bg-line/40";
-      if (n === 1) return "bg-grass/50";
-      return "bg-grass/90";
-    }
-    if (ms === today) return ""; // handled separately
-    const n = futureMap[k] ?? 0;
-    if (n === 0) return "bg-line/20";
-    if (n === 1) return "bg-fox/30";
-    if (n === 2) return "bg-fox/60";
-    return "bg-fox";
+  function dayLabel(ms: number) {
+    if (ms <= today) return "Bugun";
+    if (ms === today + DAY) return "Ertaga";
+    const d = new Date(ms);
+    return `${d.getDate()} ${UZ_MONTHS[d.getMonth()]}`;
   }
 
   if (!items.length) {
@@ -176,60 +169,72 @@ export default function Calendar() {
 
       {/* Heatmap */}
       <div className="mt-4 rounded-2xl border-2 border-line bg-card p-4">
-        <div className="overflow-x-auto">
-        {/* day-of-week header */}
-        <div className="inline-grid grid-cols-7 gap-1 mb-1">
-          {UZ_DAYS_SHORT.map((d) => (
-            <div key={d} className="w-7 text-center text-[10px] font-bold text-faint">{d}</div>
-          ))}
+        <div className="flex gap-2">
+          {/* day-of-week labels — fixed left */}
+          <div className="flex flex-col gap-1 shrink-0 pt-5">
+            {UZ_DAYS_SHORT.map((d) => (
+              <div key={d} style={{ height: CELL }} className="flex items-center text-[10px] font-bold text-faint pr-1">
+                {d}
+              </div>
+            ))}
+          </div>
+
+          {/* scrollable week columns */}
+          <div ref={scrollRef} className="overflow-x-auto">
+            {/* month labels row */}
+            <div className="flex gap-1 mb-1" style={{ height: 16 }}>
+              {weeks.map((_, wi) => (
+                <div key={wi} style={{ width: CELL, flexShrink: 0 }}
+                  className="text-[9px] font-bold text-faint leading-none">
+                  {monthLabels[wi] ?? ""}
+                </div>
+              ))}
+            </div>
+
+            {/* 7 rows × N week columns */}
+            {[0,1,2,3,4,5,6].map((dow) => (
+              <div key={dow} className="flex gap-1 mb-1">
+                {weeks.map((week, wi) => {
+                  const ms = week[dow];
+                  if (ms == null) {
+                    return <div key={wi} style={{ width: CELL, height: CELL, flexShrink: 0 }} />;
+                  }
+                  const isToday = ms === today;
+                  const isExam = ms === examMs;
+                  const isSelected = selectedDay === ms;
+                  const k = isoDay(ms);
+                  const count = ms < today ? (pastMap[k] ?? 0) : (futureMap[k] ?? 0);
+
+                  return (
+                    <button
+                      key={wi}
+                      onClick={() => setSelectedDay(isSelected ? null : ms)}
+                      style={{ width: CELL, height: CELL, flexShrink: 0 }}
+                      className={cn(
+                        "rounded-md transition-all flex items-center justify-center text-[9px] font-extrabold",
+                        isToday
+                          ? "bg-grass text-white ring-2 ring-grass ring-offset-1"
+                          : isExam
+                          ? "bg-cardinal text-white"
+                          : cellBg(ms),
+                        isSelected && !isToday && !isExam && "ring-2 ring-fg ring-offset-1",
+                      )}
+                    >
+                      {isToday ? new Date(ms).getDate() :
+                       isExam ? "🎯" :
+                       count > 0 ? count : ""}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
-
-        {/* cells */}
-        <div className="inline-grid grid-cols-7 gap-1">
-          {slots.map((ms, i) => {
-            const k = isoDay(ms);
-            const isToday = ms === today;
-            const isExam = examDate && ms === sod(new Date(examDate).getTime());
-            const isSelected = selectedDay === ms;
-            const hasDue = futureMap[k] ?? 0;
-            const hadReview = pastMap[k] ?? 0;
-
-            return (
-              <button
-                key={ms}
-                onClick={() => setSelectedDay(isSelected ? null : ms)}
-                title={`${new Date(ms).getDate()} ${UZ_MONTHS[new Date(ms).getMonth()]}`}
-                className={cn(
-                  "h-7 w-7 rounded-md transition-all relative flex items-center justify-center text-[10px] font-bold",
-                  isToday
-                    ? "bg-grass text-white ring-2 ring-grass ring-offset-1"
-                    : isExam
-                    ? "bg-cardinal text-white"
-                    : cellColor(ms),
-                  isSelected && !isToday && !isExam && "ring-2 ring-fg ring-offset-1",
-                  // month label: dot above first of month
-                )}
-              >
-                {/* month start dot */}
-                {monthLabels[i] && (
-                  <span className="absolute -top-3 left-0 text-[9px] font-bold text-faint whitespace-nowrap">
-                    {monthLabels[i]}
-                  </span>
-                )}
-                {isToday ? new Date(ms).getDate() :
-                 isExam ? "🎯" :
-                 (hasDue > 0 || hadReview > 0) ? (hasDue || hadReview) : ""}
-              </button>
-            );
-          })}
-        </div>
-
-        </div>{/* end overflow-x-auto */}
 
         {/* legend */}
-        <div className="mt-4 flex flex-wrap gap-3 text-[11px] font-semibold text-faint">
+        <div className="mt-3 flex flex-wrap gap-3 text-[11px] font-semibold text-faint">
           <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-sm bg-grass/90 inline-block" /> Ko'rilgan
+            <span className="h-3 w-3 rounded-sm bg-grass/80 inline-block" /> Ko'rilgan
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-3 w-3 rounded-sm bg-fox inline-block" /> Takrorlash
@@ -243,38 +248,34 @@ export default function Calendar() {
         </div>
       </div>
 
-      {/* Selected day or full list */}
+      {/* List */}
       <div className="mt-5 space-y-6">
-        {selectedDay !== null ? (
+        {selectedDay != null ? (
           selectedItems.length ? (
             <div>
               <div className="text-sm font-extrabold uppercase tracking-wide mb-2 text-fg">
-                {dayLabel(selectedDay, today)}
+                {dayLabel(selectedDay)}
               </div>
               <div className="grid gap-2">
                 {selectedItems.map((it) => (
-                  <ItemCard key={it.key} it={it} today={today} dayMs={selectedDay} nav={nav} />
+                  <ItemCard key={it.key} it={it} isToday={selectedDay === today} nav={nav} />
                 ))}
               </div>
             </div>
           ) : (
-            <p className="text-sm text-faint font-semibold text-center pt-2">
-              Bu kunda takrorlash yo'q.
-            </p>
+            <p className="text-sm text-faint font-semibold text-center pt-2">Bu kunda takrorlash yo'q.</p>
           )
         ) : (
           allDays.map((day) => {
-            const list = buckets.get(day)!.sort((a, b) => +new Date(a.card.due) - +new Date(b.card.due));
+            const list = buckets.get(day)!.sort((a,b) => +new Date(a.card.due) - +new Date(b.card.due));
             const isToday = day === today;
             return (
               <div key={day}>
                 <div className={cn("text-sm font-extrabold uppercase tracking-wide mb-2", isToday ? "text-fox" : "text-faint")}>
-                  {dayLabel(day, today)}
+                  {dayLabel(day)}
                 </div>
                 <div className="grid gap-2">
-                  {list.map((it) => (
-                    <ItemCard key={it.key} it={it} today={today} dayMs={day} nav={nav} />
-                  ))}
+                  {list.map((it) => <ItemCard key={it.key} it={it} isToday={isToday} nav={nav} />)}
                 </div>
               </div>
             );
@@ -285,8 +286,7 @@ export default function Calendar() {
   );
 }
 
-function ItemCard({ it, today, dayMs, nav }: { it: Item; today: number; dayMs: number; nav: (r: string) => void }) {
-  const isToday = dayMs === today;
+function ItemCard({ it, isToday, nav }: { it: Item; isToday: boolean; nav: (r: string) => void }) {
   return (
     <button
       onClick={() => nav(it.route)}
@@ -296,7 +296,7 @@ function ItemCard({ it, today, dayMs, nav }: { it: Item; today: number; dayMs: n
       )}
     >
       <div className={cn(
-        "grid h-10 w-10 shrink-0 place-items-center rounded-xl font-extrabold text-white",
+        "grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white",
         isToday ? "bg-fox" : "bg-sky"
       )}>
         {it.isTest ? <ClipboardList className="h-5 w-5" /> : <Layers className="h-5 w-5" />}
