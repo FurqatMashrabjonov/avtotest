@@ -22,13 +22,14 @@ const fromStored = (s: StoredCard): Card => ({
   last_review: s.last_review ? new Date(s.last_review) : undefined,
 });
 
-// quiz result -> FSRS grade by accuracy
+// quiz result -> FSRS grade by wrong count
+// 0 wrong  -> Easy  (~8d first, ~66d second)
+// 1 wrong  -> Hard  (shorter interval)
+// 2+ wrong -> Again (reschedule soon)
 export function ratingFromResult(r: QuizResult): Grade {
-  const acc = r.total ? r.correct / r.total : 0;
-  if (!r.passed || acc < 0.6) return Rating.Again;
-  if (acc < 0.8) return Rating.Hard;
-  if (acc < 0.95) return Rating.Good;
-  return Rating.Easy;
+  if (r.wrong === 0) return Rating.Easy;
+  if (r.wrong === 1) return Rating.Hard;
+  return Rating.Again;
 }
 
 // advance a card by one review; returns next StoredCard
