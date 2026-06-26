@@ -16,7 +16,7 @@ export interface QuizConfig {
   title: string;
   questions: Question[];
   passMaxWrong?: number;
-  durationSecs?: number; // timer; null = no timer
+  durationSecs?: number;
 }
 
 export interface QuizResult {
@@ -28,7 +28,7 @@ export interface QuizResult {
   wrongIds: number[];
 }
 
-const CORRECT_DELAY = 600; // ms before auto-advance on correct
+const CORRECT_DELAY = 600;
 
 function useShuffledAnswers(questions: Question[]) {
   return useMemo(
@@ -59,8 +59,14 @@ export function QuizRunner({
   const shuffledAnswers = useShuffledAnswers(questions);
 
   const [idx, setIdx] = useState(0);
-  const [picked, setPicked] = useState<number | null>(null);
-  const [checked, setChecked] = useState(false);
+  const idxRef = useRef(0);
+
+  // per-question picked answer index (null = unanswered)
+  const [pickedAnswers, setPickedAnswers] = useState<Array<number | null>>(
+    () => Array(questions.length).fill(null)
+  );
+  const pickedRef = useRef<Array<number | null>>(Array(questions.length).fill(null));
+
   const [timeLeft, setTimeLeft] = useState<number | null>(durationSecs ?? null);
 
   const correctRef = useRef(0);
@@ -68,12 +74,37 @@ export function QuizRunner({
   const wrongIdsRef = useRef<number[]>([]);
   const advTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const doneRef = useRef(false);
+  const numBarRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   const q = questions[idx];
   const answers = shuffledAnswers[idx];
-  const isCorrect = checked && picked != null && answers[picked].correct;
-  const progress = (idx / questions.length) * 100;
+  const picked = pickedAnswers[idx];
+  const checked = picked !== null;
+  const isCorrect = checked && picked != null && answers[picked]?.correct;
+  const answeredCount = pickedAnswers.filter((p) => p !== null).length;
+  const progress = (answeredCount / questions.length) * 100;
   const urgent = timeLeft !== null && timeLeft <= 60;
+
+  function syncPicked(newPicked: Array<number | null>) {
+    pickedRef.current = newPicked;
+    setPickedAnswers(newPicked);
+  }
+
+  function jumpTo(n: number) {
+    if (advTimer.current) clearTimeout(advTimer.current);
+    idxRef.current = n;
+    setIdx(n);
+  }
+
+  // scroll number bar to keep current button visible
+  useEffect(() => {
+    const bar = numBarRef.current;
+    if (!bar) return;
+    const btn = bar.children[idx] as HTMLElement | undefined;
+    btn?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }, [idx]);
 
   // countdown
   useEffect(() => {
@@ -97,14 +128,15 @@ export function QuizRunner({
   function pickAnswer(i: number) {
     if (checked || doneRef.current) return;
     const ok = answers[i].correct;
-    setPicked(i);
-    setChecked(true);
+    const newPicked = [...pickedRef.current];
+    newPicked[idxRef.current] = i;
+    syncPicked(newPicked);
     recordAnswer(q.id, ok);
     if (ok) {
       correctRef.current += 1;
       TG.hapticSuccess();
       playCorrect();
-      advTimer.current = setTimeout(goNext, CORRECT_DELAY);
+      advTimer.current = setTimeout(() => advanceNext(newPicked), CORRECT_DELAY);
     } else {
       wrongRef.current += 1;
       wrongIdsRef.current.push(q.id);
@@ -113,15 +145,17 @@ export function QuizRunner({
     }
   }
 
+  function advanceNext(picked: Array<number | null>) {
+    const ci = idxRef.current;
+    // prefer next unanswered after current, then wrap from start
+    let next = picked.findIndex((p, j) => j > ci && p === null);
+    if (next === -1) next = picked.findIndex((p) => p === null);
+    if (next !== -1) jumpTo(next);
+    else finish("completed");
+  }
+
   function goNext() {
-    if (advTimer.current) clearTimeout(advTimer.current);
-    if (idx + 1 >= questions.length) {
-      finish("completed");
-      return;
-    }
-    setIdx((i) => i + 1);
-    setPicked(null);
-    setChecked(false);
+    advanceNext(pickedRef.current);
   }
 
   function finish(reason: QuizResult["reason"]) {
@@ -137,11 +171,35 @@ export function QuizRunner({
     });
   }
 
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+    // ignore vertical-dominant or too-short swipes
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+    if (dx < 0 && idxRef.current < questions.length - 1) jumpTo(idxRef.current + 1);
+    else if (dx > 0 && idxRef.current > 0) jumpTo(idxRef.current - 1);
+  }
+
   return (
-    <div className="flex flex-col min-h-dvh max-w-xl mx-auto px-4">
+    <div
+      className="flex flex-col min-h-dvh max-w-xl mx-auto px-4"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* top bar */}
       <header className="flex items-center gap-3 py-4">
-        <button onClick={() => onExitClick ? onExitClick() : nav("/")} className="text-faint hover:text-fg">
+        <button
+          onClick={() => (onExitClick ? onExitClick() : nav("/"))}
+          className="text-faint hover:text-fg"
+        >
           <X className="h-7 w-7" />
         </button>
         <Progress value={progress} className="flex-1" />
@@ -162,8 +220,38 @@ export function QuizRunner({
         )}
       </header>
 
+      {/* scrollable question number bar */}
+      <div
+        ref={numBarRef}
+        className="flex gap-1.5 overflow-x-auto -mx-4 px-4 py-1 pb-2"
+        style={{ scrollbarWidth: "none" }}
+      >
+        {questions.map((_, i) => {
+          const p = pickedAnswers[i];
+          const isAnswered = p !== null;
+          const correct = isAnswered && shuffledAnswers[i][p as number]?.correct;
+          return (
+            <button
+              key={i}
+              onClick={() => jumpTo(i)}
+              className={cn(
+                "h-8 w-8 shrink-0 rounded-lg text-xs font-extrabold transition-colors",
+                i === idx ? "ring-2 ring-sky ring-offset-1" : "",
+                isAnswered
+                  ? correct
+                    ? "bg-grass text-white"
+                    : "bg-cardinal text-white"
+                  : "bg-line text-faint"
+              )}
+            >
+              {i + 1}
+            </button>
+          );
+        })}
+      </div>
+
       {/* question */}
-      <div className="flex-1">
+      <div className="flex-1 pt-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={idx}
@@ -199,7 +287,7 @@ export function QuizRunner({
         </AnimatePresence>
       </div>
 
-      {/* footer: only on wrong */}
+      {/* footer: only on wrong answer */}
       {checked && !isCorrect && (
         <footer className="sticky bottom-0 -mx-4 px-4 py-4">
           <Button variant="danger" size="lg" className="w-full" onClick={goNext}>

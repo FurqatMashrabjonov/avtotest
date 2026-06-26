@@ -36,11 +36,10 @@ export const questionsByCategory = (id: number) => byCategory.get(id) ?? [];
 
 export const categoryById = new Map(categories.map((c) => [c.id, c]));
 
-// Test blocks: general question order sliced into 20-question tests (~61 blocks)
 export const BLOCK_SIZE = 20;
-export const TEST_PASS_MAX_WRONG = 2; // pass if <= 2 wrong out of 20
+export const TEST_PASS_MAX_WRONG = 2;
 export const testBlocks: Question[][] = Array.from(
   { length: Math.ceil(questions.length / BLOCK_SIZE) },
   (_, i) => questions.slice(i * BLOCK_SIZE, (i + 1) * BLOCK_SIZE)
 );
-export const getBlock = (n: number) => testBlocks[n - 1]; // 1-based
+export const getBlock = (n: number) => testBlocks[n - 1];
