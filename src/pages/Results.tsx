@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trophy, CheckCircle2, Target, RotateCcw, CalendarClock } from "lucide-react";
+import { CheckCircle2, Target, RotateCcw, CalendarClock } from "lucide-react";
 import confetti from "canvas-confetti";
 import type { QuizResult } from "@/components/QuizRunner";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,8 @@ export function ResultScreen({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const clawdPet = perfect ? "dancing" : win ? "celebrating" : result.reason === "timeout" ? "dizzy" : "sad";
+
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center max-w-xl mx-auto px-6 text-center">
       <motion.div
@@ -60,7 +62,11 @@ export function ResultScreen({
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 12 }}
       >
-        <Trophy className={`h-24 w-24 ${win ? "text-bee fill-bee" : "text-faint"}`} />
+        <img
+          src={`https://clawd-pet.vercel.app/pets/clawd-${clawdPet}.svg`}
+          alt=""
+          className="h-36 w-36"
+        />
       </motion.div>
 
       <h1 className="mt-4 text-3xl font-extrabold">{headline}</h1>

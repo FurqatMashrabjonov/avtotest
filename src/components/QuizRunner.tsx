@@ -68,6 +68,7 @@ export function QuizRunner({
   const pickedRef = useRef<Array<number | null>>(Array(questions.length).fill(null));
 
   const [timeLeft, setTimeLeft] = useState<number | null>(durationSecs ?? null);
+  const [clawd, setClawd] = useState<"correct" | "wrong" | null>(null);
 
   const correctRef = useRef(0);
   const wrongRef = useRef(0);
@@ -136,12 +137,17 @@ export function QuizRunner({
       correctRef.current += 1;
       TG.hapticSuccess();
       playCorrect();
-      advTimer.current = setTimeout(() => advanceNext(newPicked), CORRECT_DELAY);
+      setClawd("correct");
+      advTimer.current = setTimeout(() => {
+        setClawd(null);
+        advanceNext(newPicked);
+      }, CORRECT_DELAY);
     } else {
       wrongRef.current += 1;
       wrongIdsRef.current.push(q.id);
       TG.hapticError();
       playWrong();
+      setClawd("wrong");
     }
   }
 
@@ -155,6 +161,7 @@ export function QuizRunner({
   }
 
   function goNext() {
+    setClawd(null);
     advanceNext(pickedRef.current);
   }
 
@@ -295,6 +302,26 @@ export function QuizRunner({
           </Button>
         </footer>
       )}
+
+      {/* clawd reaction overlay */}
+      <AnimatePresence>
+        {clawd && (
+          <motion.div
+            key={clawd}
+            initial={{ opacity: 0, scale: 0.5, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: 20 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            className="fixed bottom-24 right-4 z-50 pointer-events-none"
+          >
+            <img
+              src={`https://clawd-pet.vercel.app/pets/clawd-${clawd === "correct" ? "celebrating" : "facepalm"}.svg`}
+              alt=""
+              className="h-24 w-24 drop-shadow-lg"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
